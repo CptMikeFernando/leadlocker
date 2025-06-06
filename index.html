@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0078d7" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LeadLocker - Business Card Photo Capture</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: center;
+  }
+  /* Updated video size to business card dimensions */
+  video {
+    width: 350px;      /* about 3.5 inches */
+    height: 200px;     /* about 2 inches */
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;  /* cover to fill video box nicely */
+  }
+  #captureBtn {
+    margin-top: 10px;
+    padding: 10px 16px;
+    font-size: 1rem;
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 350px;
+    max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #captureBtn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  #photos {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+    gap: 12px;
+  }
+  .photo-item {
+    position: relative;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .photo-item:hover {
+    box-shadow: 0 0 8px #0078d7;
+  }
+  .photo-item img {
+    width: 100%;
+    display: block;
+    pointer-events: none;
+    border-radius: 8px 8px 0 0;
+  }
+  /* Delete button */
+  .delete-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-weight: bold;
+    color: #b00;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 20px;
+    text-align: center;
+    padding: 0;
+    z-index: 10;
+  }
+  /* Edit button */
+  .edit-btn {
+    margin: 6px 0 6px 0;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    background-color: #0078d7;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  /* Name and company container */
+  .name-company {
+    padding: 6px 8px 10px 8px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .person-name {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #222;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .company-name {
+    font-size: 0.85rem;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Modal for enlarged image */
+  #modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.8);
+    align-items: center;
+    justify-content: center;
+  }
+  #modal img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 0 16px #000;
+  }
+  /* Close button on modal */
+  #modalClose {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+  }
+  /* Input modal */
+  #inputModal {
+    display: none;
+    position: fixed;
+    z-index: 1100;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 400px;
+    text-align: left;
+  }
+  #inputModal h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-align: center;
+  }
+  #inputModal label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  #inputModal input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  #inputModalButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  #inputModalButtons button {
+    padding: 8px 14px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  #saveBtn {
+    background-color: #0078d7;
+    color: white;
+  }
+  #cancelBtn {
+    background-color: #ccc;
+    color: #333;
+  }
+</style>
+</head>
+<body>
+
+<h1>LeadLocker</h1>
+
+<video autoplay playsinline></video>
+<button id="captureBtn">Capture Business Card</button>
+
+<h2>Business Cards</h2>
+<div id="photos"></div>
+
+<!-- Modal for enlarged image -->
+<div id="modal">
+  <span id="modalClose">&times;</span>
+  <img src="" alt="Enlarged Business Card" />
+</div>
+
+<!-- Modal for inputting name and company -->
+<div id="inputModal">
+  <h2>Enter Details</h2>
+  <label for="personNameInput">Person's Name:</label>
+  <input type="text" id="personNameInput" placeholder="Enter person's name" />
+  <label for="companyNameInput">Company Name:</label>
+  <input type="text" id="companyNameInput" placeholder="Enter company name" />
+  <div id="inputModalButtons">
+    <button id="cancelBtn">Cancel</button>
+    <button id="saveBtn">Save</button>
+  </div>
+</div>
+
+<script>
+  let video = document.querySelector("video");
+  let captureBtn = document.getElementById("captureBtn");
+  let photosDiv = document.getElementById("photos");
+  let modal = document.getElementById("modal");
+  let modalImg = modal.querySelector("img");
+  let modalClose = document.getElementById("modalClose");
+  let inputModal = document.getElementById("inputModal");
+  let personNameInput = document.getElementById("personNameInput");
+  let companyNameInput = document.getElementById("companyNameInput");
+  let cancelBtn = document.getElementById("cancelBtn");
+  let saveBtn = document.getElementById("saveBtn");
+
+  let db;
+  let dbReady = false;
+  let cards = []; // local cache of cards
+
+  // Temporary holder for the newly captured image before saving
+  let pendingCard = null;
+
+  // Setup camera stream
+  async function setupCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      video.srcObject = stream;
+    } catch (err) {
+      alert("Error accessing camera: " + err.message);
+    }
+  }
+
+  // Open or create IndexedDB
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      let request = indexedDB.open("LeadLockerDB", 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        db = request.result;
+        dbReady = true;
+        resolve();
+      };
+      request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("cards")) {
+          db.createObjectStore("cards", { keyPath: "id", autoIncrement: true });
+        }
+      };
+    });
+  }
+
+  // Save card to DB
+  function saveCardToDB(card) {
+    return new Promise((resolve, reject) => {
+      if (!dbReady) return reject("DB not ready");
+      let tx = db.transaction("cards", "readwrite");
+      let store = tx.objectStore("cards");
+      let req;
+      if (card.id) {
+        req = store.put(card);
+      } else {
+        req = store.add(card);
+      }
+      req.onsuccess = (e) => {
+        if (!card.id) {
+          card.id = e.target.result; // assign new id after add
+        }
+        resolve(card);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  // Delete card from DB
+  function deleteCardFromDB(id) {
+    return new Promise((resolve, reject) => {
+      if (!dbReady) return reject("DB not ready");
+      let tx = db.transaction("cards", "readwrite");
+      let store = tx.objectStore("cards");
+      let req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  // Load all cards from DB
+  function loadCardsFromDB() {
+    return new Promise((resolve, reject) => {
+      if (!dbReady) return reject("DB not ready");
+      let tx = db.transaction("cards", "readonly");
+      let store = tx.objectStore("cards");
+      let req = store.getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  // Capture image from video stream
+  function captureImage() {
+    let canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+    return canvas.toDataURL("image/jpeg", 0.9);
+  }
+
+  // Add card to DOM
+  function addCardToDOM(card) {
+    // Create container div
+    let div = document.createElement("div");
+    div.className = "photo-item";
+    div.dataset.id = card.id;
+
+    // Image
+    let img = document.createElement("img");
+    img.src = card.image;
+    div.appendChild(img);
+
+    // Name and company container
+    const nameCompanyDiv = document.createElement("div");
+    nameCompanyDiv.className = "name-company";
+
+    const personNameDiv = document.createElement("div");
+    personNameDiv.className = "person-name";
+    personNameDiv.textContent = card.name || "Unknown";
+
+    const companyNameDiv = document.createElement("div");
+    companyNameDiv.className = "company-name";
+    companyNameDiv.textContent = card.company || "";
+
+    nameCompanyDiv.appendChild(personNameDiv);
+    nameCompanyDiv.appendChild(companyNameDiv);
+
+    div.appendChild(nameCompanyDiv);
+
+    // Edit button
+    let editBtn = document.createElement("button");
+    editBtn.textContent = "Edit";
+    editBtn.className = "edit-btn";
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      editingCardId = card.id; // track which card we're editing
+      openInputModal(card);
+    };
+    div.appendChild(editBtn);
+
+    // Delete button
+    let delBtn = document.createElement("button");
+    delBtn.textContent = "×";
+    delBtn.className = "delete-btn";
+    delBtn.title = "Delete";
+    delBtn.onclick = async (e) => {
+      e.stopPropagation();
+      if (confirm("Delete this card?")) {
+        await deleteCardFromDB(card.id);
+        cards = cards.filter(c => c.id !== card.id);
+        photosDiv.removeChild(div);
+      }
+    };
+    div.appendChild(delBtn);
+
+    // Click image to enlarge modal
+    div.onclick = () => {
+      modalImg.src = card.image;
+      modal.style.display = "flex";
+    };
+
+    photosDiv.appendChild(div);
+  }
+
+  // Open input modal to add/edit name and company
+  function openInputModal(card) {
+    personNameInput.value = card.name || "";
+    companyNameInput.value = card.company || "";
+    inputModal.style.display = "block";
+  }
+
+  // Close input modal
+  function closeInputModal() {
+    inputModal.style.display = "none";
+    pendingCard = null;
+  }
+
+  // Save input modal data
+  async function saveInputModal() {
+    let name = personNameInput.value.trim();
+    let company = companyNameInput.value.trim();
+
+    if (pendingCard) {
+      // This is a newly captured card, not yet saved
+      pendingCard.name = name;
+      pendingCard.company = company;
+
+      pendingCard = await saveCardToDB(pendingCard);
+      cards.push(pendingCard);
+      addCardToDOM(pendingCard);
+
+      pendingCard = null;
+    } else {
+      // Editing existing card
+      let cardId = editingCardId;
+      let card = cards.find(c => c.id === cardId);
+      if (!card) {
+        alert("Error: card not found.");
+        closeInputModal();
+        return;
+      }
+      card.name = name;
+      card.company = company;
+
+      await saveCardToDB(card);
+
+      // Update DOM
+      let cardDiv = photosDiv.querySelector(`.photo-item[data-id="${card.id}"]`);
+      if (cardDiv) {
+        const personNameDiv = cardDiv.querySelector(".person-name");
+        const companyNameDiv = cardDiv.querySelector(".company-name");
+        personNameDiv.textContent = card.name || "Unknown";
+        companyNameDiv.textContent = card.company || "";
+      }
+    }
+
+    editingCardId = null;
+    closeInputModal();
+  }
+
+  // After capturing image, open modal to enter details before saving/showing
+  async function handleCapture() {
+    let imageData = captureImage();
+    pendingCard = {
+      image: imageData,
+      name: "",
+      company: ""
+    };
+    openInputModal(pendingCard);
+  }
+
+  let editingCardId = null; // track card being edited
+
+  // Initialize app
+  async function init() {
+    await openDB();
+    cards = await loadCardsFromDB();
+    cards.forEach(addCardToDOM);
+    await setupCamera();
+  }
+
+  captureBtn.onclick = handleCapture;
+  cancelBtn.onclick = () => {
+    closeInputModal();
+    pendingCard = null;
+  };
+  saveBtn.onclick = saveInputModal;
+
+  modalClose.onclick = () => {
+    modal.style.display = "none";
+    modalImg.src = "";
+  };
+
+  // Close modal if clicked outside the image
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      modalImg.src = "";
+    }
+  };
+
+  init();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registered:', reg.scope))
+      .catch(err => console.log('Service Worker registration failed:', err));
+  });
+}
+</script>
+
+</body>
+</html>
