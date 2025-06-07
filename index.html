@@ -6,6 +6,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>LeadLocker - Business Card Photo Capture</title>
+<button id="refreshBtn">Refresh</button>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -207,6 +208,16 @@
     background-color: #ccc;
     color: #333;
   }
+#refreshBtn {
+  margin-top: 10px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -252,6 +263,9 @@
 let phoneInput = document.getElementById("phoneInput");
   let cancelBtn = document.getElementById("cancelBtn");
   let saveBtn = document.getElementById("saveBtn");
+document.getElementById("refreshBtn").onclick = () => {
+  setupCamera();
+};
 
   let db;
   let dbReady = false;
@@ -548,4 +562,5 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
 
