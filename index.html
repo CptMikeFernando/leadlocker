@@ -397,6 +397,10 @@ div.appendChild(viewIcon);
         await deleteCardFromDB(card.id);
         cards = cards.filter(c => c.id !== card.id);
         photosDiv.removeChild(div);
+// Ensure video stream is still active
+if (!video.srcObject) {
+  setupCamera();
+}
       }
     };
     div.appendChild(delBtn);
@@ -520,3 +524,4 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
