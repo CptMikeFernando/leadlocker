@@ -13,15 +13,15 @@
     margin: 20px auto;
     text-align: center;
   }
-  /* Updated video size to business card dimensions */
+  /* Main camera preview sized as business card */
   video {
-    width: 350px;      /* about 3.5 inches */
-    height: 200px;     /* about 2 inches */
+    width: 350px;
+    height: 200px;
     border-radius: 8px;
     border: 1px solid #ccc;
     display: block;
     margin: 0 auto;
-    object-fit: cover;  /* cover to fill video box nicely */
+    object-fit: cover;
   }
   #captureBtn {
     margin-top: 10px;
@@ -35,8 +35,7 @@
     width: 350px;
     max-width: 100%;
     display: block;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 auto;
   }
   #captureBtn:disabled {
     background-color: #ccc;
@@ -45,11 +44,13 @@
   #photos {
     margin-top: 20px;
     display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
     gap: 12px;
+    justify-content: center;
   }
   .photo-item {
     position: relative;
+    width: 175px;
     border: 1px solid #ccc;
     border-radius: 8px;
     overflow: hidden;
@@ -63,12 +64,14 @@
     box-shadow: 0 0 8px #0078d7;
   }
   .photo-item img {
-    width: 100%;
+    width: 175px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #ccc;
     display: block;
     pointer-events: none;
-    border-radius: 8px 8px 0 0;
   }
-  /* Delete button */
   .delete-btn {
     position: absolute;
     top: 4px;
@@ -87,9 +90,8 @@
     padding: 0;
     z-index: 10;
   }
-  /* Edit button */
   .edit-btn {
-    margin: 6px 0 6px 0;
+    margin: 6px 0;
     padding: 4px 10px;
     font-size: 0.85rem;
     background-color: #0078d7;
@@ -98,9 +100,8 @@
     border-radius: 5px;
     cursor: pointer;
   }
-  /* Name and company container */
   .name-company {
-    padding: 6px 8px 10px 8px;
+    padding: 6px 8px 10px;
     text-align: center;
     width: 100%;
     box-sizing: border-box;
@@ -121,7 +122,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  /* Modal for enlarged image */
   #modal {
     display: none;
     position: fixed;
@@ -138,7 +138,6 @@
     border-radius: 8px;
     box-shadow: 0 0 16px #000;
   }
-  /* Close button on modal */
   #modalClose {
     position: fixed;
     top: 16px;
@@ -149,7 +148,6 @@
     font-weight: bold;
     user-select: none;
   }
-  /* Input modal */
   #inputModal {
     display: none;
     position: fixed;
@@ -165,46 +163,13 @@
     max-width: 400px;
     text-align: left;
   }
-  #inputModal h2 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-weight: bold;
-    text-align: center;
-  }
-  #inputModal label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  #inputModal input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
-  }
-  #inputModalButtons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-  #inputModalButtons button {
-    padding: 8px 14px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-  }
-  #saveBtn {
-    background-color: #0078d7;
-    color: white;
-  }
-  #cancelBtn {
-    background-color: #ccc;
-    color: #333;
-  }
+  #inputModal h2 { margin-top:0; margin-bottom:15px; font-weight:bold; text-align:center; }
+  #inputModal label { display:block; margin-bottom:5px; font-weight:bold; }
+  #inputModal input[type="text"] { width:100%; padding:8px; margin-bottom:15px; font-size:1rem; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+  #inputModalButtons { display:flex; justify-content:flex-end; gap:10px; }
+  #inputModalButtons button { padding:8px 14px; font-size:1rem; border-radius:6px; border:none; cursor:pointer; }
+  #saveBtn { background-color:#0078d7; color:white; }
+  #cancelBtn { background-color:#ccc; color:#333; }
 </style>
 </head>
 <body>
@@ -217,13 +182,11 @@
 <h2>Business Cards</h2>
 <div id="photos"></div>
 
-<!-- Modal for enlarged image -->
 <div id="modal">
   <span id="modalClose">&times;</span>
   <img src="" alt="Enlarged Business Card" />
 </div>
 
-<!-- Modal for inputting name and company -->
 <div id="inputModal">
   <h2>Enter Details</h2>
   <label for="personNameInput">Person's Name:</label>
@@ -237,26 +200,24 @@
 </div>
 
 <script>
-  let video = document.querySelector("video");
-  let captureBtn = document.getElementById("captureBtn");
-  let photosDiv = document.getElementById("photos");
-  let modal = document.getElementById("modal");
-  let modalImg = modal.querySelector("img");
-  let modalClose = document.getElementById("modalClose");
-  let inputModal = document.getElementById("inputModal");
-  let personNameInput = document.getElementById("personNameInput");
-  let companyNameInput = document.getElementById("companyNameInput");
-  let cancelBtn = document.getElementById("cancelBtn");
-  let saveBtn = document.getElementById("saveBtn");
+  const video = document.querySelector("video");
+  const captureBtn = document.getElementById("captureBtn");
+  const photosDiv = document.getElementById("photos");
+  const modal = document.getElementById("modal");
+  const modalImg = modal.querySelector("img");
+  const modalClose = document.getElementById("modalClose");
+  const inputModal = document.getElementById("inputModal");
+  const personNameInput = document.getElementById("personNameInput");
+  const companyNameInput = document.getElementById("companyNameInput");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const saveBtn = document.getElementById("saveBtn");
 
   let db;
   let dbReady = false;
-  let cards = []; // local cache of cards
-
-  // Temporary holder for the newly captured image before saving
+  let cards = [];
   let pendingCard = null;
+  let editingCardId = null;
 
-  // Setup camera stream
   async function setupCamera() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -266,127 +227,106 @@
     }
   }
 
-  // Open or create IndexedDB
   function openDB() {
     return new Promise((resolve, reject) => {
-      let request = indexedDB.open("LeadLockerDB", 1);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
-        db = request.result;
-        dbReady = true;
-        resolve();
-      };
-      request.onupgradeneeded = (e) => {
-        db = e.target.result;
+      const request = indexedDB.open("LeadLockerDB", 1);
+      request.onupgradeneeded = e => {
+        const db = e.target.result;
         if (!db.objectStoreNames.contains("cards")) {
           db.createObjectStore("cards", { keyPath: "id", autoIncrement: true });
         }
       };
+      request.onsuccess = e => {
+        db = e.target.result;
+        dbReady = true;
+        resolve();
+      };
+      request.onerror = e => reject(e.target.error);
     });
   }
 
-  // Save card to DB
   function saveCardToDB(card) {
     return new Promise((resolve, reject) => {
       if (!dbReady) return reject("DB not ready");
-      let tx = db.transaction("cards", "readwrite");
-      let store = tx.objectStore("cards");
-      let req;
-      if (card.id) {
-        req = store.put(card);
-      } else {
-        req = store.add(card);
-      }
-      req.onsuccess = (e) => {
-        if (!card.id) {
-          card.id = e.target.result; // assign new id after add
-        }
+      const tx = db.transaction("cards", "readwrite");
+      const store = tx.objectStore("cards");
+      const req = card.id ? store.put(card) : store.add(card);
+      req.onsuccess = e => {
+        if (!card.id) card.id = e.target.result;
         resolve(card);
       };
-      req.onerror = () => reject(req.error);
+      req.onerror = e => reject(e.target.error);
     });
   }
 
-  // Delete card from DB
   function deleteCardFromDB(id) {
     return new Promise((resolve, reject) => {
       if (!dbReady) return reject("DB not ready");
-      let tx = db.transaction("cards", "readwrite");
-      let store = tx.objectStore("cards");
-      let req = store.delete(id);
+      const tx = db.transaction("cards", "readwrite");
+      const store = tx.objectStore("cards");
+      const req = store.delete(id);
       req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
+      req.onerror = e => reject(e.target.error);
     });
   }
 
-  // Load all cards from DB
   function loadCardsFromDB() {
     return new Promise((resolve, reject) => {
       if (!dbReady) return reject("DB not ready");
-      let tx = db.transaction("cards", "readonly");
-      let store = tx.objectStore("cards");
-      let req = store.getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+      const tx = db.transaction("cards", "readonly");
+      const store = tx.objectStore("cards");
+      const req = store.getAll();
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror = e => reject(e.target.error);
     });
   }
 
-  // Capture image from video stream
   function captureImage() {
-    let canvas = document.createElement("canvas");
+    const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    let ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0);
     return canvas.toDataURL("image/jpeg", 0.9);
   }
 
-  // Add card to DOM
   function addCardToDOM(card) {
-    // Create container div
-    let div = document.createElement("div");
+    const div = document.createElement("div");
     div.className = "photo-item";
     div.dataset.id = card.id;
 
-    // Image
-    let img = document.createElement("img");
+    const img = document.createElement("img");
     img.src = card.image;
     div.appendChild(img);
 
-    // Name and company container
     const nameCompanyDiv = document.createElement("div");
     nameCompanyDiv.className = "name-company";
 
-    const personNameDiv = document.createElement("div");
-    personNameDiv.className = "person-name";
-    personNameDiv.textContent = card.name || "Unknown";
+    const pn = document.createElement("div");
+    pn.className = "person-name";
+    pn.textContent = card.name || "Unknown";
 
-    const companyNameDiv = document.createElement("div");
-    companyNameDiv.className = "company-name";
-    companyNameDiv.textContent = card.company || "";
+    const cn = document.createElement("div");
+    cn.className = "company-name";
+    cn.textContent = card.company || "";
 
-    nameCompanyDiv.appendChild(personNameDiv);
-    nameCompanyDiv.appendChild(companyNameDiv);
-
+    nameCompanyDiv.append(pn, cn);
     div.appendChild(nameCompanyDiv);
 
-    // Edit button
-    let editBtn = document.createElement("button");
-    editBtn.textContent = "Edit";
+    const editBtn = document.createElement("button");
     editBtn.className = "edit-btn";
-    editBtn.onclick = (e) => {
+    editBtn.textContent = "Edit";
+    editBtn.onclick = e => {
       e.stopPropagation();
-      editingCardId = card.id; // track which card we're editing
+      editingCardId = card.id;
       openInputModal(card);
     };
     div.appendChild(editBtn);
 
-    // Delete button
-    let delBtn = document.createElement("button");
-    delBtn.textContent = "×";
+    const delBtn = document.createElement("button");
     delBtn.className = "delete-btn";
-    delBtn.title = "Delete";
-    delBtn.onclick = async (e) => {
+    delBtn.textContent = "×";
+    delBtn.onclick = async e => {
       e.stopPropagation();
       if (confirm("Delete this card?")) {
         await deleteCardFromDB(card.id);
@@ -396,7 +336,6 @@
     };
     div.appendChild(delBtn);
 
-    // Click image to enlarge modal
     div.onclick = () => {
       modalImg.src = card.image;
       modal.style.display = "flex";
@@ -405,76 +344,56 @@
     photosDiv.appendChild(div);
   }
 
-  // Open input modal to add/edit name and company
   function openInputModal(card) {
     personNameInput.value = card.name || "";
     companyNameInput.value = card.company || "";
     inputModal.style.display = "block";
   }
 
-  // Close input modal
   function closeInputModal() {
     inputModal.style.display = "none";
     pendingCard = null;
   }
 
-  // Save input modal data
   async function saveInputModal() {
-    let name = personNameInput.value.trim();
-    let company = companyNameInput.value.trim();
+    const name = personNameInput.value.trim();
+    const company = companyNameInput.value.trim();
+
+    if (!name) {
+      alert("Please enter the person's name.");
+      return;
+    }
 
     if (pendingCard) {
-      // This is a newly captured card, not yet saved
       pendingCard.name = name;
       pendingCard.company = company;
-
       pendingCard = await saveCardToDB(pendingCard);
       cards.push(pendingCard);
       addCardToDOM(pendingCard);
-
       pendingCard = null;
     } else {
-      // Editing existing card
-      let cardId = editingCardId;
-      let card = cards.find(c => c.id === cardId);
+      const card = cards.find(c => c.id === editingCardId);
       if (!card) {
-        alert("Error: card not found.");
         closeInputModal();
         return;
       }
       card.name = name;
       card.company = company;
-
       await saveCardToDB(card);
-
-      // Update DOM
-      let cardDiv = photosDiv.querySelector(`.photo-item[data-id="${card.id}"]`);
-      if (cardDiv) {
-        const personNameDiv = cardDiv.querySelector(".person-name");
-        const companyNameDiv = cardDiv.querySelector(".company-name");
-        personNameDiv.textContent = card.name || "Unknown";
-        companyNameDiv.textContent = card.company || "";
-      }
+      const cardDiv = photosDiv.querySelector(`.photo-item[data-id=\"${card.id}\"]`);
+      cardDiv.querySelector(".person-name").textContent = name;
+      cardDiv.querySelector(".company-name").textContent = company;
     }
 
     editingCardId = null;
     closeInputModal();
   }
 
-  // After capturing image, open modal to enter details before saving/showing
   async function handleCapture() {
-    let imageData = captureImage();
-    pendingCard = {
-      image: imageData,
-      name: "",
-      company: ""
-    };
+    pendingCard = { image: captureImage(), name: "", company: "" };
     openInputModal(pendingCard);
   }
 
-  let editingCardId = null; // track card being edited
-
-  // Initialize app
   async function init() {
     await openDB();
     cards = await loadCardsFromDB();
@@ -483,34 +402,18 @@
   }
 
   captureBtn.onclick = handleCapture;
-  cancelBtn.onclick = () => {
-    closeInputModal();
-    pendingCard = null;
-  };
+  cancelBtn.onclick = () => closeInputModal();
   saveBtn.onclick = saveInputModal;
-
-  modalClose.onclick = () => {
-    modal.style.display = "none";
-    modalImg.src = "";
-  };
-
-  // Close modal if clicked outside the image
-  modal.onclick = (e) => {
-    if (e.target === modal) {
-      modal.style.display = "none";
-      modalImg.src = "";
-    }
-  };
+  modalClose.onclick = () => { modal.style.display = "none"; modalImg.src = ""; };
+  modal.onclick = e => { if (e.target === modal) { modal.style.display = "none"; modalImg.src = ""; } };
 
   init();
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker registered:', reg.scope))
-      .catch(err => console.log('Service Worker registration failed:', err));
-  });
-}
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
 </script>
 
 </body>
