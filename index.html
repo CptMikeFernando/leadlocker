@@ -97,6 +97,7 @@
     color: white;
     border-radius: 5px;
     cursor: pointer;
+    text-decoration: none;
   }
   /* Name and company container */
   .name-company {
@@ -229,6 +230,8 @@
   <input type="text" id="personNameInput" placeholder="Enter person's name" />
   <label for="companyNameInput">Company Name:</label>
   <input type="text" id="companyNameInput" placeholder="Enter company name" />
+<label for="phoneInput">Phone Number:</label>
+<input type="text" id="phoneInput" placeholder="Enter phone number" />
   <div id="inputModalButtons">
     <button id="cancelBtn">Cancel</button>
     <button id="saveBtn">Save</button>
@@ -245,6 +248,7 @@
   let inputModal = document.getElementById("inputModal");
   let personNameInput = document.getElementById("personNameInput");
   let companyNameInput = document.getElementById("companyNameInput");
+let phoneInput = document.getElementById("phoneInput");
   let cancelBtn = document.getElementById("cancelBtn");
   let saveBtn = document.getElementById("saveBtn");
 
@@ -350,7 +354,7 @@
     // View icon instead of image
 let viewIcon = document.createElement("div");
 viewIcon.className = "view-icon";
-viewIcon.innerHTML = "🔍";
+viewIcon.innerHTML = "🪪";
 viewIcon.onclick = (e) => {
   e.stopPropagation();
   modalImg.src = card.image;
@@ -384,7 +388,22 @@ div.appendChild(viewIcon);
       editingCardId = card.id; // track which card we're editing
       openInputModal(card);
     };
-    div.appendChild(editBtn);
+    // Call button
+let callBtn = document.createElement("a");
+callBtn.textContent = "Call";
+callBtn.className = "edit-btn";
+callBtn.style.marginRight = "10px";
+callBtn.href = `tel:${card.phone || ''}`;
+callBtn.onclick = (e) => e.stopPropagation();
+
+// Button wrapper
+const btnWrapper = document.createElement("div");
+btnWrapper.style.display = "flex";
+btnWrapper.style.gap = "6px";
+btnWrapper.appendChild(callBtn);
+btnWrapper.appendChild(editBtn);
+
+div.appendChild(btnWrapper);
 
     // Delete button
     let delBtn = document.createElement("button");
@@ -431,11 +450,14 @@ if (!video.srcObject) {
   async function saveInputModal() {
     let name = personNameInput.value.trim();
     let company = companyNameInput.value.trim();
+let phone = phoneInput.value.trim();
+
 
     if (pendingCard) {
       // This is a newly captured card, not yet saved
       pendingCard.name = name;
       pendingCard.company = company;
+      pendingCard.phone = phone;
 
       pendingCard = await saveCardToDB(pendingCard);
       cards.push(pendingCard);
@@ -453,6 +475,7 @@ if (!video.srcObject) {
       }
       card.name = name;
       card.company = company;
+      card.phone = phone;
 
       await saveCardToDB(card);
 
